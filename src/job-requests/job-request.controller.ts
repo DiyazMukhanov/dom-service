@@ -9,7 +9,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JobRequestService } from './job-request.service';
-import { JobRequest } from './job-request.entity';
+import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -31,7 +31,7 @@ export class JobRequestController {
   ): Promise<JobRequest[]> {
     const user = req.user;
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'manager') {
       throw new ForbiddenException('Доступ запрещен');
     }
 

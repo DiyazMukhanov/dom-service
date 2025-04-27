@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JobRequest } from './job-request.entity';
+import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
 
 @Injectable()

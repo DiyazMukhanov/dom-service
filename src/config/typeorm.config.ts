@@ -2,7 +2,8 @@ import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Admin } from '../admins/entities/admin.entity';
 import { User } from '../users/user.entity';
-import { JobRequest } from '../job-requests/job-request.entity';
+import { JobRequest } from '../job-requests/entities/job-request.entity';
+import { City } from '../cities/entities/city.entity';
 
 export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -14,6 +15,6 @@ export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
     username: config.get<string>('DATABASE_USERNAME'),
     password: config.get<string>('DATABASE_PASSWORD'),
     database: config.get<string>('DATABASE_NAME'),
-    entities: [Admin, User, JobRequest],
+    entities: [Admin, User, JobRequest, City],
   }),
 };

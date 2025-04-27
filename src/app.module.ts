@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { typeOrmConfigAsync } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { JobRequestModule } from './job-requests/job-request.module';
+import { CityModule } from './cities/city.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { JobRequestModule } from './job-requests/job-request.module';
     }),
     AuthModule,
     JobRequestModule,
+    CityModule,
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
   ],
   controllers: [AppController],
