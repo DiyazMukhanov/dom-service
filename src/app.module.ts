@@ -7,6 +7,9 @@ import { typeOrmConfigAsync } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { JobRequestModule } from './job-requests/job-request.module';
 import { CityModule } from './cities/city.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/roles.guard';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -19,6 +22,16 @@ import { CityModule } from './cities/city.module';
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, // 👈 сначала JwtAuthGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

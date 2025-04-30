@@ -7,11 +7,16 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  Patch,
+  Param,
+  Delete,
 } from '@nestjs/common';
 import { JobRequestService } from './job-request.service';
 import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('job-requests')
 export class JobRequestController {
@@ -22,19 +27,37 @@ export class JobRequestController {
     return this.jobRequestService.create(data);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'manager')
   @Get()
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Request() req,
   ): Promise<JobRequest[]> {
-    const user = req.user;
-
-    if (user.role !== 'admin' && user.role !== 'manager') {
-      throw new ForbiddenException('Доступ запрещен');
-    }
-
     return this.jobRequestService.findAll(page, limit);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'manager')
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateData: Partial<JobRequest>,
+  ): Promise<JobRequest> {
+    return this.jobRequestService.updateRequest(id, updateData);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'manager')
+  @Get(':id')
+  async findOne(@Param('id') id: number): Promise<JobRequest> {
+    return this.jobRequestService.getOneRequest(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
+  @Delete(':id')
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.jobRequestService.deleteRequest(id);
   }
 }

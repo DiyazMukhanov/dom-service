@@ -28,6 +28,13 @@ export class JobRequest {
   @Column()
   phoneNumber: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['opened', 'closed'],
+    default: 'opened',
+  })
+  status: 'opened' | 'closed';
+
   @CreateDateColumn()
   createdAt: Date;
 }
