@@ -5,8 +5,6 @@ import {
   Body,
   Query,
   UseGuards,
-  Request,
-  ForbiddenException,
   Patch,
   Param,
   Delete,
@@ -33,7 +31,7 @@ export class JobRequestController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ): Promise<JobRequest[]> {
+  ): Promise<{ data: JobRequest[]; total: number }> {
     return this.jobRequestService.findAll(page, limit);
   }
 

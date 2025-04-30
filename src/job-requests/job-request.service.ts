@@ -16,14 +16,17 @@ export class JobRequestService {
     return this.jobRequestRepository.save(jobRequest);
   }
 
-  async findAll(page = 1, limit = 10): Promise<JobRequest[]> {
-    const [requests] = await this.jobRequestRepository.findAndCount({
+  async findAll(
+    page = 1,
+    limit = 10,
+  ): Promise<{ data: JobRequest[]; total: number }> {
+    const [data, total] = await this.jobRequestRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
     });
 
-    return requests;
+    return { data, total };
   }
 
   async updateRequest(
