@@ -16,7 +16,7 @@ export class JobRequest {
   @Column()
   workDescription: string;
 
-  @Column()
+  @Column({ type: 'date' })
   workDate: string;
 
   @Column()
