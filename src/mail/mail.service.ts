@@ -21,7 +21,7 @@ export class MailService {
   }) {
     const mailOptions = {
       from: `"Job Requests" <${process.env.MAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL,
+      to: `${process.env.ADMIN_EMAIL}, ${process.env.ADMIN_EMAIL2}`,
       subject: `Новая заявка: ${data.workType}`,
       html: `
         <h3>Новая заявка</h3>
