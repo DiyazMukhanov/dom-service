@@ -3,17 +3,30 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class JobRequestService {
   constructor(
     @InjectRepository(JobRequest)
     private readonly jobRequestRepository: Repository<JobRequest>,
+    private readonly mailService: MailService,
   ) {}
 
   async create(data: CreateJobRequestDto): Promise<JobRequest> {
     const jobRequest = this.jobRequestRepository.create(data);
-    return this.jobRequestRepository.save(jobRequest);
+    const saved = await this.jobRequestRepository.save(jobRequest);
+
+    await this.mailService.sendJobRequestNotification({
+      workType: saved.workType,
+      email: saved.email,
+      phoneNumber: saved.phoneNumber,
+      workDate: saved.workDate,
+      workTime: saved.workTime,
+      workDescription: saved.workDescription,
+    });
+
+    return saved;
   }
 
   async findAll(
