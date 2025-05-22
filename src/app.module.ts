@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { JobRequestModule } from './job-requests/job-request.module';
 import { CityModule } from './cities/city.module';
 import { MailModule } from './mail/mail.module';
+import { WorkerModule } from './worker/worker.module';
+import { OccupationsModule } from './occupations/occupations.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { MailModule } from './mail/mail.module';
     JobRequestModule,
     CityModule,
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
+    WorkerModule,
+    OccupationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
