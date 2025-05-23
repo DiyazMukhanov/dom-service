@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { MailService } from '../mail/mail.service';
+import { Worker } from '../worker/entities/worker.entity';
 
 @Injectable()
 export class JobRequestService {
@@ -11,22 +12,34 @@ export class JobRequestService {
     @InjectRepository(JobRequest)
     private readonly jobRequestRepository: Repository<JobRequest>,
     private readonly mailService: MailService,
+
+    @InjectRepository(Worker)
+    private readonly workerRepository: Repository<Worker>,
   ) {}
 
   async create(data: CreateJobRequestDto): Promise<JobRequest> {
-    const jobRequest = this.jobRequestRepository.create(data);
-    const saved = await this.jobRequestRepository.save(jobRequest);
-
-    await this.mailService.sendJobRequestNotification({
-      workType: saved.workType,
-      email: saved.email,
-      phoneNumber: saved.phoneNumber,
-      workDate: saved.workDate,
-      workTime: saved.workTime,
-      workDescription: saved.workDescription,
+    const jobRequest = this.jobRequestRepository.create({
+      name: data.name,
+      phoneNumber: data.phoneNumber,
+      workDate: data.workDate,
+      workTime: data.workTime,
+      address: data.address,
+      comments: data.comments,
+      occupation: { id: data.occupationId },
+      category: { id: data.categoryId },
+      city: { id: data.cityId },
     });
 
-    return saved;
+    const savedJobRequest = await this.jobRequestRepository.save(jobRequest);
+
+    const matchedWorkers = await this.workerRepository.find({
+      where: {
+        occupation_id: data.occupationId,
+        isActive: true,
+      } as FindOptionsWhere<Worker>,
+    });
+
+    return savedJobRequest;
   }
 
   async findAll(

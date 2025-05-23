@@ -6,6 +6,8 @@ import { JobRequest } from '../job-requests/entities/job-request.entity';
 import { City } from '../cities/entities/city.entity';
 import { Occupation } from '../occupations/entities/occupation.entity';
 import { Worker } from '../worker/entities/worker.entity';
+import { Rating } from '../ratings/entities/rating.entity';
+import { Category } from '../categories/entities/category.entity';
 
 export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -28,7 +30,16 @@ export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
         username: config.get<string>('DATABASE_USERNAME'),
         password: config.get<string>('DATABASE_PASSWORD'),
         database: config.get<string>('DATABASE_NAME'),
-        entities: [Admin, User, JobRequest, City, Occupation, Worker],
+        entities: [
+          Admin,
+          User,
+          JobRequest,
+          City,
+          Occupation,
+          Worker,
+          Rating,
+          Category,
+        ],
         synchronize: false,
       };
     }

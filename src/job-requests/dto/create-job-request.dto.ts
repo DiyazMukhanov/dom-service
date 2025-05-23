@@ -1,21 +1,31 @@
-import { IsString } from 'class-validator';
+import { IsString, IsDateString, IsOptional, IsInt } from 'class-validator';
 
 export class CreateJobRequestDto {
   @IsString()
-  workType: string;
+  name: string;
 
   @IsString()
-  workDescription: string;
+  phoneNumber: string;
 
-  @IsString()
+  @IsDateString()
   workDate: string;
 
   @IsString()
   workTime: string;
 
   @IsString()
-  email: string;
+  address: string;
 
+  @IsOptional()
   @IsString()
-  phoneNumber: string;
+  comments?: string;
+
+  @IsInt()
+  occupationId: number;
+
+  @IsInt()
+  categoryId: number;
+
+  @IsInt()
+  cityId: number;
 }

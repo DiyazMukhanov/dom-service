@@ -16,8 +16,10 @@ export class OccupationsService {
     return await this.occupationRepository.save(occupation);
   }
 
-  findAll() {
-    return `This action returns all occupations`;
+  async findAll(): Promise<Occupation[]> {
+    return this.occupationRepository.find({
+      relations: ['categories'],
+    });
   }
 
   findOne(id: number) {

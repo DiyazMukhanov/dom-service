@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WorkerService } from './worker.service';
 import { CreateWorkerDto } from './dto/create-worker.dto';
@@ -27,9 +29,17 @@ export class WorkerController {
     return this.workerService.create(createWorkerDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
   @Get()
-  findAll() {
-    return this.workerService.findAll();
+  async findAll(
+    @Query('occupationId') occupationId?: string,
+    @Query('isActive') isActive?: string,
+  ): Promise<Worker[]> {
+    return this.workerService.findAll(
+      occupationId ? +occupationId : undefined,
+      isActive !== undefined ? isActive === 'true' : undefined,
+    );
   }
 
   @Get(':id')
@@ -37,9 +47,14 @@ export class WorkerController {
     return this.workerService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWorkerDto: UpdateWorkerDto) {
-    return this.workerService.update(+id, updateWorkerDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateWorkerDto: UpdateWorkerDto,
+  ): Promise<Worker> {
+    return this.workerService.update(id, updateWorkerDto);
   }
 
   @Delete(':id')

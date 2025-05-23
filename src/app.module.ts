@@ -10,6 +10,8 @@ import { CityModule } from './cities/city.module';
 import { MailModule } from './mail/mail.module';
 import { WorkerModule } from './worker/worker.module';
 import { OccupationsModule } from './occupations/occupations.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { OccupationsModule } from './occupations/occupations.module';
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
     WorkerModule,
     OccupationsModule,
+    RatingsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,7 +17,6 @@ export class WorkerService {
     const worker: WorkerEntity = this.workerRepository.create({
       phoneNumber: createWorkerDto.phoneNumber,
       fullName: createWorkerDto.fullName,
-      rating: createWorkerDto.rating ?? 0,
       occupation: createWorkerDto.occupationId
         ? ({ id: createWorkerDto.occupationId } as Occupation)
         : undefined,
@@ -26,16 +25,56 @@ export class WorkerService {
     return await this.workerRepository.save(worker);
   }
 
-  findAll() {
-    return `This action returns all worker`;
+  async findAll(
+    occupationId?: number,
+    isActive?: boolean,
+  ): Promise<WorkerEntity[]> {
+    const query = this.workerRepository
+      .createQueryBuilder('worker')
+      .leftJoinAndSelect('worker.occupation', 'occupation')
+      .leftJoinAndSelect('worker.ratings', 'ratings');
+
+    if (occupationId !== undefined) {
+      query.where('occupation.id = :occupationId', { occupationId });
+    }
+
+    if (isActive !== undefined) {
+      query.andWhere('worker.isActive = :isActive', { isActive });
+    }
+
+    return await query.getMany();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} worker`;
   }
 
-  update(id: number, updateWorkerDto: UpdateWorkerDto) {
-    return `This action updates a #${id} worker`;
+  async update(
+    id: number,
+    updateWorkerDto: UpdateWorkerDto,
+  ): Promise<WorkerEntity> {
+    const existing = await this.workerRepository.findOneBy({ id });
+    if (!existing) {
+      throw new Error(`Worker with ID ${id} not found`);
+    }
+
+    if (updateWorkerDto.fullName !== undefined) {
+      existing.fullName = updateWorkerDto.fullName;
+    }
+
+    if (updateWorkerDto.phoneNumber !== undefined) {
+      existing.phoneNumber = updateWorkerDto.phoneNumber;
+    }
+
+    if (updateWorkerDto.isActive !== undefined) {
+      existing.isActive = updateWorkerDto.isActive;
+    }
+
+    if (updateWorkerDto.occupationId !== undefined) {
+      existing.occupation = { id: updateWorkerDto.occupationId } as Occupation;
+    }
+
+    return await this.workerRepository.save(existing);
   }
 
   remove(id: number) {
