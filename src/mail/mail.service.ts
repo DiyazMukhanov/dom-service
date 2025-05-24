@@ -116,6 +116,103 @@ export class MailService {
     });
   }
 
+  async sendClientWaitingEmail(options: {
+    email: string;
+    name: string;
+    workDate: string;
+    workTime: string;
+    categoryTitle: string;
+    cityName: string;
+    address: string;
+  }) {
+    const {
+      email,
+      name,
+      workDate,
+      workTime,
+      categoryTitle,
+      cityName,
+      address,
+    } = options;
+
+    const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(workDate));
+
+    const html = `
+    <p>Здравствуйте, ${name}!</p>
+    <p>Спасибо за вашу заявку на услугу <strong>${categoryTitle}</strong> в городе <strong>${cityName}</strong>.</p>
+    <p>Мы уже ищем специалиста для вас!</p>
+    <ul>
+      <li><strong>Дата:</strong> ${formattedDate}</li>
+      <li><strong>Время:</strong> ${workTime}</li>
+      <li><strong>Адрес:</strong> ${address}</li>
+    </ul>
+    <p>Пожалуйста, оставайтесь на связи — скоро мы пришлём контакт исполнителя.</p>
+  `;
+
+    return this.transporter.sendMail({
+      from: `"Service Doma" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: '🔍 Мы уже ищем специалиста!',
+      html,
+    });
+  }
+
+  async sendBookingInfoToClient(options: {
+    email: string;
+    fullName: string;
+    workerName: string;
+    workerPhone: string;
+    workDate: string;
+    workTime: string;
+    occupationTitle: string;
+    categoryTitle: string;
+    address: string;
+  }) {
+    const {
+      email,
+      fullName,
+      workerName,
+      workerPhone,
+      workDate,
+      workTime,
+      occupationTitle,
+      categoryTitle,
+      address,
+    } = options;
+
+    const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(workDate));
+
+    const html = `
+    <p>Здравствуйте, ${fullName}!</p>
+    <p>Ваша заявка успешно принята.</p>
+    <p><strong>Исполнитель:</strong> ${workerName}</p>
+    <p><strong>Телефон исполнителя:</strong> ${workerPhone}</p>
+    <ul>
+      <li><strong>Услуга:</strong> ${categoryTitle}</li>
+      <li><strong>Специализация:</strong> ${occupationTitle}</li>
+      <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Дата:</strong> ${formattedDate}</li>
+      <li><strong>Время:</strong> ${workTime}</li>
+    </ul>
+    <p>Ожидайте звонка от исполнителя.</p>
+  `;
+
+    return this.transporter.sendMail({
+      from: `"Service Doma" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: `🔔 Ваша заявка принята!`,
+      html,
+    });
+  }
+
   async sendJobTakenNotification(options: {
     email: string;
     fullName: string;

@@ -1,4 +1,10 @@
-import { IsString, IsDateString, IsOptional, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsOptional,
+  IsInt,
+  IsEmail,
+} from 'class-validator';
 
 export class CreateJobRequestDto {
   @IsString()
@@ -15,6 +21,10 @@ export class CreateJobRequestDto {
 
   @IsString()
   address: string;
+
+  @IsOptional()
+  @IsEmail()
+  email: string;
 
   @IsOptional()
   @IsString()

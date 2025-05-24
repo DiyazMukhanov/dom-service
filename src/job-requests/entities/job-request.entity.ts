@@ -22,6 +22,9 @@ export class JobRequest {
   @Column()
   phoneNumber: string;
 
+  @Column({ nullable: true })
+  email: string;
+
   @Column({ type: 'date', nullable: false })
   workDate: string;
 

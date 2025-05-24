@@ -74,6 +74,35 @@ export class JobRequestService {
       });
     }
 
+    if (data.email) {
+      await this.mailService.sendClientWaitingEmail({
+        email: data.email,
+        name: data.name,
+        workDate: data.workDate,
+        workTime: data.workTime,
+        categoryTitle: fullJobRequest.category.title,
+        cityName: fullJobRequest.city.name,
+        address: fullJobRequest.address,
+      });
+    }
+
+    if (data.phoneNumber) {
+      const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(data.workDate));
+
+      const smsText =
+        `✅ Ваша заявка принята!\n` +
+        `${fullJobRequest.category.title}, ${fullJobRequest.city.name}\n` +
+        `${formattedDate} в ${data.workTime}\n` +
+        `Адрес: ${data.address}\n` +
+        `Мы ищем специалиста — ожидайте.`;
+
+      await this.smsService.sendSms(data.phoneNumber, smsText);
+    }
+
     return savedJobRequest;
   }
 
@@ -128,6 +157,31 @@ export class JobRequestService {
         clientPhone: updatedRequest.phoneNumber,
         price: updatedRequest.category.price,
       });
+    }
+
+    // Notify client via email and SMS
+    if (worker && jobRequest.email) {
+      await this.mailService.sendBookingInfoToClient({
+        email: jobRequest.email,
+        fullName: jobRequest.name,
+        workerName: worker.fullName,
+        workerPhone: worker.phoneNumber,
+        workDate: updatedRequest.workDate,
+        workTime: updatedRequest.workTime,
+        occupationTitle: updatedRequest.occupation.title,
+        categoryTitle: updatedRequest.category.title,
+        address: updatedRequest.address,
+      });
+    }
+
+    if (worker && jobRequest.phoneNumber) {
+      const smsText =
+        `✅ Ваша заявка №${updatedRequest.id} принята.\n` +
+        `Исполнитель: ${worker.fullName}, ${worker.phoneNumber}\n` +
+        `${updatedRequest.workDate} в ${updatedRequest.workTime}\n` +
+        `Адрес: ${updatedRequest.address}`;
+
+      await this.smsService.sendSms(jobRequest.phoneNumber, smsText);
     }
 
     return updatedRequest;
