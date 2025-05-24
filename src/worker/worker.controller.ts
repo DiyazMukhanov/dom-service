@@ -57,6 +57,24 @@ export class WorkerController {
     return this.workerService.update(id, updateWorkerDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
+  @Post('send-email-confirmation/:id')
+  async sendCodeToEmail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ code: string }> {
+    return this.workerService.sendEmailConfirmation(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
+  @Get('confirm-email/:id')
+  async confirmEmail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ success: boolean }> {
+    return this.workerService.confirmEmail(id);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.workerService.remove(+id);

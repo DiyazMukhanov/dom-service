@@ -1,4 +1,10 @@
-import { IsString, IsNumber, IsOptional, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsInt,
+  IsEmail,
+} from 'class-validator';
 
 export class CreateWorkerDto {
   @IsString()
@@ -12,6 +18,8 @@ export class CreateWorkerDto {
   rating?: number;
 
   @IsInt()
-  @IsOptional()
   occupationId?: number;
+
+  @IsEmail()
+  email: string;
 }

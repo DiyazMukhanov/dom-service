@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { JobRequest } from './entities/job-request.entity';
 import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { MailService } from '../mail/mail.service';
 import { Worker } from '../worker/entities/worker.entity';
+import { SmsService } from '../sms/sms.service';
 
 @Injectable()
 export class JobRequestService {
@@ -12,6 +17,7 @@ export class JobRequestService {
     @InjectRepository(JobRequest)
     private readonly jobRequestRepository: Repository<JobRequest>,
     private readonly mailService: MailService,
+    private readonly smsService: SmsService,
 
     @InjectRepository(Worker)
     private readonly workerRepository: Repository<Worker>,
@@ -32,6 +38,16 @@ export class JobRequestService {
 
     const savedJobRequest = await this.jobRequestRepository.save(jobRequest);
 
+    // 🔁 Подгружаем с occupation и category
+    const fullJobRequest = await this.jobRequestRepository.findOne({
+      where: { id: savedJobRequest.id },
+      relations: ['occupation', 'category', 'city'],
+    });
+
+    if (!fullJobRequest) {
+      throw new NotFoundException('JobRequest не найден после сохранения');
+    }
+
     const matchedWorkers = await this.workerRepository.find({
       where: {
         occupation_id: data.occupationId,
@@ -39,7 +55,82 @@ export class JobRequestService {
       } as FindOptionsWhere<Worker>,
     });
 
+    // ✅ Отправим email каждому работнику
+    for (const worker of matchedWorkers) {
+      if (!worker.email) continue;
+
+      await this.mailService.sendJobRequestToWorker({
+        email: worker.email,
+        fullName: worker.fullName,
+        workerId: worker.id,
+        jobRequestId: savedJobRequest.id,
+        workDate: savedJobRequest.workDate,
+        workTime: savedJobRequest.workTime,
+        address: savedJobRequest.address,
+        occupationTitle: fullJobRequest.occupation.title,
+        categoryTitle: fullJobRequest.category.title,
+        cityName: fullJobRequest.city.name,
+        price: fullJobRequest.category.price,
+      });
+    }
+
     return savedJobRequest;
+  }
+
+  async book(jobRequestId: number, workerId: number): Promise<JobRequest> {
+    const jobRequest = await this.jobRequestRepository.findOne({
+      where: { id: jobRequestId },
+      relations: ['occupation', 'category'], // 👈 нужно, чтобы были доступны .title и .price
+    });
+
+    if (!jobRequest) {
+      throw new NotFoundException(`Заявка с ID ${jobRequestId} не найдена`);
+    }
+
+    // Уже занята — уведомим
+    if (jobRequest.booked_by) {
+      const worker = await this.workerRepository.findOne({
+        where: { id: workerId },
+      });
+
+      if (worker?.email) {
+        await this.mailService.sendJobTakenNotification({
+          email: worker.email,
+          fullName: worker.fullName,
+          jobRequestId: jobRequest.id,
+        });
+      }
+
+      throw new BadRequestException(
+        'Заявка уже забронирована другим работником',
+      );
+    }
+
+    // Успешно бронируем
+    jobRequest.booked_by = workerId;
+    jobRequest.status = 'booked';
+
+    const updatedRequest = await this.jobRequestRepository.save(jobRequest);
+
+    const worker = await this.workerRepository.findOne({
+      where: { id: workerId },
+    });
+
+    if (worker) {
+      await this.mailService.sendBookingConfirmationToWorker({
+        email: worker.email,
+        fullName: worker.fullName,
+        occupationTitle: updatedRequest.occupation.title,
+        categoryTitle: updatedRequest.category.title,
+        address: updatedRequest.address,
+        workDate: updatedRequest.workDate,
+        workTime: updatedRequest.workTime,
+        clientPhone: updatedRequest.phoneNumber,
+        price: updatedRequest.category.price,
+      });
+    }
+
+    return updatedRequest;
   }
 
   async findAll(

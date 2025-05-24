@@ -35,6 +35,14 @@ export class JobRequestController {
     return this.jobRequestService.findAll(page, limit);
   }
 
+  @Patch('book/:id')
+  async bookJobRequest(
+    @Param('id') id: number,
+    @Query('workerId') workerId: number,
+  ): Promise<JobRequest> {
+    return this.jobRequestService.book(id, workerId);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'manager')
   @Patch(':id')

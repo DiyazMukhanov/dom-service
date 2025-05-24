@@ -20,6 +20,12 @@ export class Worker {
   @Column()
   fullName: string;
 
+  @Column({ nullable: true, unique: true })
+  email: string;
+
+  @Column({ default: false })
+  isEmailConfirmed: boolean;
+
   @Column({ default: false })
   isActive: boolean;
 

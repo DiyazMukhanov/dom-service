@@ -1,28 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { Repository } from 'typeorm';
 import { Worker as WorkerEntity } from './entities/worker.entity';
 import { Occupation } from '../occupations/entities/occupation.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class WorkerService {
   constructor(
     @InjectRepository(WorkerEntity)
     private readonly workerRepository: Repository<WorkerEntity>,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createWorkerDto: CreateWorkerDto): Promise<WorkerEntity> {
     const worker: WorkerEntity = this.workerRepository.create({
       phoneNumber: createWorkerDto.phoneNumber,
       fullName: createWorkerDto.fullName,
+      email: createWorkerDto.email,
       occupation: createWorkerDto.occupationId
         ? ({ id: createWorkerDto.occupationId } as Occupation)
         : undefined,
     });
 
     return await this.workerRepository.save(worker);
+  }
+
+  async sendEmailConfirmation(workerId: number): Promise<{ code: string }> {
+    const worker = await this.workerRepository.findOne({
+      where: { id: workerId },
+    });
+
+    if (!worker || !worker.email) {
+      throw new NotFoundException('Работник не найден или email отсутствует');
+    }
+
+    const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-значный код
+
+    await this.mailService.sendEmailCode(worker.email, worker.fullName, code);
+
+    return { code }; // 👈 вернём в ответе
+  }
+
+  async confirmEmail(workerId: number): Promise<{ success: boolean }> {
+    const worker = await this.workerRepository.findOne({
+      where: { id: workerId },
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Работник не найден');
+    }
+
+    if (worker.isEmailConfirmed) {
+      return { success: true }; // Уже подтверждён
+    }
+
+    worker.isEmailConfirmed = true;
+    await this.workerRepository.save(worker);
+
+    return { success: true };
   }
 
   async findAll(
