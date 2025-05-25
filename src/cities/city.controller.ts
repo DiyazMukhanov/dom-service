@@ -8,6 +8,7 @@ import {
   ForbiddenException,
   Delete,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { City } from './entities/city.entity';
@@ -36,5 +37,15 @@ export class CityController {
   @Delete(':id')
   async removeCity(@Param('id') id: number): Promise<void> {
     return this.cityService.deleteCity(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
+  @Patch(':id')
+  async updateCity(
+    @Param('id') id: number,
+    @Body('name') name: string,
+  ): Promise<City> {
+    return this.cityService.updateCity(id, name);
   }
 }

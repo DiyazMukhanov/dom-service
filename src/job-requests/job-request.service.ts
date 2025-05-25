@@ -26,6 +26,7 @@ export class JobRequestService {
   async create(data: CreateJobRequestDto): Promise<JobRequest> {
     const jobRequest = this.jobRequestRepository.create({
       name: data.name,
+      email: data.email,
       phoneNumber: data.phoneNumber,
       workDate: data.workDate,
       workTime: data.workTime,
@@ -83,6 +84,8 @@ export class JobRequestService {
         categoryTitle: fullJobRequest.category.title,
         cityName: fullJobRequest.city.name,
         address: fullJobRequest.address,
+        requestId: fullJobRequest.id,
+        price: fullJobRequest.category.price,
       });
     }
 
@@ -156,6 +159,7 @@ export class JobRequestService {
         workTime: updatedRequest.workTime,
         clientPhone: updatedRequest.phoneNumber,
         price: updatedRequest.category.price,
+        requestId: updatedRequest.id,
       });
     }
 
@@ -171,6 +175,8 @@ export class JobRequestService {
         occupationTitle: updatedRequest.occupation.title,
         categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
+        requestId: updatedRequest.id,
+        price: updatedRequest.category.price,
       });
     }
 
@@ -220,6 +226,7 @@ export class JobRequestService {
   async getOneRequest(id: number): Promise<JobRequest> {
     const jobRequest = await this.jobRequestRepository.findOne({
       where: { id },
+      relations: ['bookedBy'],
     });
 
     if (!jobRequest) {
@@ -235,5 +242,63 @@ export class JobRequestService {
     if (result.affected === 0) {
       throw new NotFoundException(`Заявка с ID ${id} не найдена`);
     }
+  }
+
+  async cancelRequest(jobRequestId: number): Promise<JobRequest> {
+    const jobRequest = await this.jobRequestRepository.findOne({
+      where: { id: jobRequestId },
+      relations: ['occupation', 'category', 'city'],
+    });
+
+    if (!jobRequest) {
+      throw new NotFoundException(`Заявка с ID ${jobRequestId} не найдена`);
+    }
+
+    if (jobRequest.status === 'closed') {
+      throw new BadRequestException('Заявка уже отменена');
+    }
+
+    jobRequest.status = 'closed';
+    const updatedRequest = await this.jobRequestRepository.save(jobRequest);
+
+    // Отправим рабочим email об отмене
+    const matchedWorkers = await this.workerRepository.find({
+      where: {
+        occupation_id: jobRequest.occupation_id,
+        isActive: true,
+      } as FindOptionsWhere<Worker>,
+    });
+
+    for (const worker of matchedWorkers) {
+      if (!worker.email) continue;
+
+      await this.mailService.sendJobRequestCancellationToWorker({
+        email: worker.email,
+        fullName: worker.fullName,
+        jobRequestId: jobRequest.id,
+        occupationTitle: jobRequest.occupation.title,
+        categoryTitle: jobRequest.category.title,
+        cityName: jobRequest.city.name,
+        workDate: jobRequest.workDate,
+        workTime: jobRequest.workTime,
+        address: jobRequest.address,
+      });
+    }
+
+    // Уведомим клиента, если есть email
+    if (jobRequest.email) {
+      await this.mailService.sendClientCancellationEmail({
+        email: jobRequest.email,
+        fullName: jobRequest.name,
+        jobRequestId: jobRequest.id,
+        occupationTitle: jobRequest.occupation.title,
+        categoryTitle: jobRequest.category.title,
+        workDate: jobRequest.workDate,
+        workTime: jobRequest.workTime,
+        address: jobRequest.address,
+      });
+    }
+
+    return updatedRequest;
   }
 }

@@ -66,4 +66,11 @@ export class JobRequestController {
   async remove(@Param('id') id: number): Promise<void> {
     return this.jobRequestService.deleteRequest(id);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
+  @Patch('cancel/:id')
+  async cancel(@Param('id') id: number): Promise<JobRequest> {
+    return this.jobRequestService.cancelRequest(id);
+  }
 }

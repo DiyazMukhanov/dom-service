@@ -39,6 +39,8 @@ export class CategoriesController {
     return this.categoriesService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -47,6 +49,8 @@ export class CategoriesController {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);

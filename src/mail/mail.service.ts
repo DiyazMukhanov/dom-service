@@ -91,7 +91,7 @@ export class MailService {
       year: 'numeric',
     }).format(new Date(workDate));
 
-    const bookingLink = `${baseUrl}/job-requests/book/${jobRequestId}?workerId=${workerId}`;
+    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&workTime=${workTime}&workDate=${workDate}&price=${price}`;
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
@@ -118,12 +118,14 @@ export class MailService {
 
   async sendClientWaitingEmail(options: {
     email: string;
+    requestId: number;
     name: string;
     workDate: string;
     workTime: string;
     categoryTitle: string;
     cityName: string;
     address: string;
+    price: number;
   }) {
     const {
       email,
@@ -133,6 +135,8 @@ export class MailService {
       categoryTitle,
       cityName,
       address,
+      requestId,
+      price,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -143,12 +147,13 @@ export class MailService {
 
     const html = `
     <p>Здравствуйте, ${name}!</p>
-    <p>Спасибо за вашу заявку на услугу <strong>${categoryTitle}</strong> в городе <strong>${cityName}</strong>.</p>
+    <p>Спасибо за вашу заявку #${requestId} на услугу <strong>${categoryTitle}</strong> в городе <strong>${cityName}</strong>.</p>
     <p>Мы уже ищем специалиста для вас!</p>
     <ul>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Цена:</strong> ${price}</li>
     </ul>
     <p>Пожалуйста, оставайтесь на связи — скоро мы пришлём контакт исполнителя.</p>
   `;
@@ -162,6 +167,7 @@ export class MailService {
   }
 
   async sendBookingInfoToClient(options: {
+    requestId: number;
     email: string;
     fullName: string;
     workerName: string;
@@ -171,6 +177,7 @@ export class MailService {
     occupationTitle: string;
     categoryTitle: string;
     address: string;
+    price: number;
   }) {
     const {
       email,
@@ -182,6 +189,8 @@ export class MailService {
       occupationTitle,
       categoryTitle,
       address,
+      requestId,
+      price,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -192,7 +201,7 @@ export class MailService {
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
-    <p>Ваша заявка успешно принята.</p>
+    <p>Ваша заявка ${requestId} успешно принята.</p>
     <p><strong>Исполнитель:</strong> ${workerName}</p>
     <p><strong>Телефон исполнителя:</strong> ${workerPhone}</p>
     <ul>
@@ -201,6 +210,7 @@ export class MailService {
       <li><strong>Адрес:</strong> ${address}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
+      <li><strong>Цена:</strong> ${price}</li>
     </ul>
     <p>Ожидайте звонка от исполнителя.</p>
   `;
@@ -244,6 +254,7 @@ export class MailService {
     workTime: string;
     clientPhone: string;
     price: number;
+    requestId: number;
   }) {
     const {
       email,
@@ -255,6 +266,7 @@ export class MailService {
       workTime,
       clientPhone,
       price,
+      requestId,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -267,7 +279,7 @@ export class MailService {
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
-    <p>Вы успешно забронировали заявку:</p>
+    <p>Вы успешно забронировали заявку #${requestId}:</p>
     <ul>
       <li><strong>Специалист:</strong> ${occupationTitle}</li>
       <li><strong>Работа:</strong> ${categoryTitle}</li>
@@ -284,6 +296,83 @@ export class MailService {
       to: email,
       subject: `✅ Вы приняли заявку`,
       html,
+    });
+  }
+
+  // Для рабочего
+  async sendJobRequestCancellationToWorker({
+    email,
+    fullName,
+    jobRequestId,
+    occupationTitle,
+    categoryTitle,
+    cityName,
+    workDate,
+    workTime,
+    address,
+  }: {
+    email: string;
+    fullName: string;
+    jobRequestId: number;
+    occupationTitle: string;
+    categoryTitle: string;
+    cityName: string;
+    workDate: string;
+    workTime: string;
+    address: string;
+  }) {
+    const subject = `🚫 Заявка №${jobRequestId} отменена`;
+    const html = `
+    <p>Здравствуйте, ${fullName}.</p>
+    <p>Заявка №${jobRequestId} (${occupationTitle} / ${categoryTitle}) в городе ${cityName} была отменена.</p>
+    <p><strong>Дата:</strong> ${workDate}<br/>
+    <strong>Время:</strong> ${workTime}<br/>
+    <strong>Адрес:</strong> ${address}</p>
+  `;
+
+    await this.transporter.sendMail({
+      to: email,
+      subject,
+      html,
+      from: `"Service Doma" <${process.env.MAIL_USER}>`,
+    });
+  }
+
+  // Для клиента
+  async sendClientCancellationEmail({
+    email,
+    fullName,
+    jobRequestId,
+    occupationTitle,
+    categoryTitle,
+    workDate,
+    workTime,
+    address,
+  }: {
+    email: string;
+    fullName: string;
+    jobRequestId: number;
+    occupationTitle: string;
+    categoryTitle: string;
+    workDate: string;
+    workTime: string;
+    address: string;
+  }) {
+    const subject = `❌ Ваша заявка №${jobRequestId} отменена`;
+    const html = `
+    <p>Здравствуйте, ${fullName}.</p>
+    <p>Ваша заявка была отменена.</p>
+    <p><strong>Заявка:</strong> ${occupationTitle} / ${categoryTitle}</p>
+    <p><strong>Дата:</strong> ${workDate}<br/>
+    <strong>Время:</strong> ${workTime}<br/>
+    <strong>Адрес:</strong> ${address}</p>
+  `;
+
+    await this.transporter.sendMail({
+      to: email,
+      subject,
+      html,
+      from: `"Service Doma" <${process.env.MAIL_USER}>`,
     });
   }
 }

@@ -1,10 +1,21 @@
-import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Patch,
+  Param,
+  ParseIntPipe,
+  Delete,
+} from '@nestjs/common';
 import { OccupationsService } from './occupations.service';
 import { CreateOccupationDto } from './dto/create-occupation.dto';
 import { Occupation } from './entities/occupation.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { UpdateOccupationDto } from './dto/update-occupation.dto';
 
 @Controller('occupations')
 export class OccupationsController {
@@ -20,9 +31,26 @@ export class OccupationsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('manager')
+  @Roles('manager', 'admin')
   @Get()
   async findAll(): Promise<Occupation[]> {
     return this.occupationsService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateOccupationDto: UpdateOccupationDto,
+  ): Promise<Occupation> {
+    return this.occupationsService.update(id, updateOccupationDto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager')
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.occupationsService.remove(id);
   }
 }

@@ -21,6 +21,18 @@ export class CityService {
     });
   }
 
+  async updateCity(id: number, name: string): Promise<City> {
+    const city = await this.cityRepository.findOne({ where: { id } });
+
+    if (!city) {
+      throw new NotFoundException(`Город с ID ${id} не найден`);
+    }
+
+    city.name = name;
+
+    return this.cityRepository.save(city);
+  }
+
   async deleteCity(id: number): Promise<void> {
     const result = await this.cityRepository.delete(id);
 

@@ -76,4 +76,17 @@ export class AuthService {
     const { password: _, ...userWithoutPassword } = savedUser;
     return userWithoutPassword;
   }
+
+  async getMe(userId: number): Promise<Omit<User, 'password'>> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 }

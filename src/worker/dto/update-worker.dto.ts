@@ -14,6 +14,10 @@ export class UpdateWorkerDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isEmailConfirmed?: boolean;
+
+  @IsOptional()
   @IsInt()
   occupationId?: number;
 }

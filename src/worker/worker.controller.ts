@@ -35,13 +35,21 @@ export class WorkerController {
   async findAll(
     @Query('occupationId') occupationId?: string,
     @Query('isActive') isActive?: string,
-  ): Promise<Worker[]> {
+    @Query('isEmailConfirmed') isEmailConfirmed?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ): Promise<{ data: Worker[]; total: number }> {
     return this.workerService.findAll(
       occupationId ? +occupationId : undefined,
       isActive !== undefined ? isActive === 'true' : undefined,
+      isEmailConfirmed !== undefined ? isEmailConfirmed === 'true' : undefined,
+      +page,
+      +limit,
     );
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.workerService.findOne(+id);
@@ -68,7 +76,7 @@ export class WorkerController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('manager', 'admin')
-  @Get('confirm-email/:id')
+  @Patch('confirm-email/:id')
   async confirmEmail(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean }> {

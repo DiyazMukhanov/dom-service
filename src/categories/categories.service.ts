@@ -30,8 +30,22 @@ export class CategoriesService {
     return `This action returns a #${id} category`;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, dto: UpdateCategoryDto): Promise<Category> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+
+    if (!category) {
+      throw new Error(`Категория с ID ${id} не найдена`);
+    }
+
+    if (dto.title !== undefined) {
+      category.title = dto.title;
+    }
+
+    if (dto.price !== undefined) {
+      category.price = dto.price;
+    }
+
+    return await this.categoryRepository.save(category);
   }
 
   remove(id: number) {

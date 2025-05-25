@@ -66,7 +66,10 @@ export class WorkerService {
   async findAll(
     occupationId?: number,
     isActive?: boolean,
-  ): Promise<WorkerEntity[]> {
+    isEmailConfirmed?: boolean,
+    page = 1,
+    limit = 10,
+  ): Promise<{ data: WorkerEntity[]; total: number }> {
     const query = this.workerRepository
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.occupation', 'occupation')
@@ -80,11 +83,32 @@ export class WorkerService {
       query.andWhere('worker.isActive = :isActive', { isActive });
     }
 
-    return await query.getMany();
+    if (isEmailConfirmed !== undefined) {
+      query.andWhere('worker.isEmailConfirmed = :isEmailConfirmed', {
+        isEmailConfirmed,
+      });
+    }
+
+    query.orderBy('worker.id', 'DESC');
+
+    query.skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return { data, total };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} worker`;
+  async findOne(id: number): Promise<WorkerEntity> {
+    const worker = await this.workerRepository.findOne({
+      where: { id },
+      relations: ['occupation', 'ratings'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException(`Работник с ID ${id} не найден`);
+    }
+
+    return worker;
   }
 
   async update(
@@ -102,6 +126,10 @@ export class WorkerService {
 
     if (updateWorkerDto.phoneNumber !== undefined) {
       existing.phoneNumber = updateWorkerDto.phoneNumber;
+    }
+
+    if (updateWorkerDto.isEmailConfirmed !== undefined) {
+      existing.isEmailConfirmed = updateWorkerDto.isEmailConfirmed;
     }
 
     if (updateWorkerDto.isActive !== undefined) {
