@@ -30,8 +30,6 @@ export class OccupationsController {
     return this.occupationsService.create(createOccupationDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('manager', 'admin')
   @Get()
   async findAll(): Promise<Occupation[]> {
     return this.occupationsService.findAll();

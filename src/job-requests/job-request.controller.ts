@@ -31,8 +31,17 @@ export class JobRequestController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('cityId') cityId?: number,
+    @Query('phoneNumber') phoneNumber?: string,
+    @Query('email') email?: string,
   ): Promise<{ data: JobRequest[]; total: number }> {
-    return this.jobRequestService.findAll(page, limit);
+    return this.jobRequestService.findAll(
+      page,
+      limit,
+      cityId,
+      phoneNumber,
+      email,
+    );
   }
 
   @Patch('book/:id')

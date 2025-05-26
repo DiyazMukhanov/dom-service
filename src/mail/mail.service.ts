@@ -91,7 +91,7 @@ export class MailService {
       year: 'numeric',
     }).format(new Date(workDate));
 
-    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&workTime=${workTime}&workDate=${workDate}&price=${price}`;
+    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&workTime=${workTime}&workDate=${workDate}&price=${price}&cityName=${cityName}`;
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>

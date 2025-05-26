@@ -196,13 +196,36 @@ export class JobRequestService {
   async findAll(
     page = 1,
     limit = 10,
+    cityId?: number,
+    phoneNumber?: string,
+    email?: string,
   ): Promise<{ data: JobRequest[]; total: number }> {
-    const [data, total] = await this.jobRequestRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+    const query = this.jobRequestRepository
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.occupation', 'occupation')
+      .leftJoinAndSelect('request.category', 'category')
+      .leftJoinAndSelect('request.city', 'city')
+      .orderBy('request.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
 
+    if (cityId) {
+      query.andWhere('request.city_id = :cityId', { cityId });
+    }
+
+    if (phoneNumber) {
+      query.andWhere('request.phoneNumber ILIKE :phoneNumber', {
+        phoneNumber: `%${phoneNumber}%`,
+      });
+    }
+
+    if (email) {
+      query.andWhere('request.email ILIKE :email', {
+        email: `%${email}%`,
+      });
+    }
+
+    const [data, total] = await query.getManyAndCount();
     return { data, total };
   }
 
