@@ -20,7 +20,7 @@ export class Worker {
   @Column()
   fullName: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true })
   email: string;
 
   @Column({ default: false })
