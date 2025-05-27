@@ -181,6 +181,7 @@ export class MailService {
     occupationTitle: string;
     categoryTitle: string;
     address: string;
+    apartment: string;
     price: number;
   }) {
     const {
@@ -193,6 +194,7 @@ export class MailService {
       occupationTitle,
       categoryTitle,
       address,
+      apartment,
       requestId,
       price,
     } = options;
@@ -212,6 +214,7 @@ export class MailService {
       <li><strong>Услуга:</strong> ${categoryTitle}</li>
       <li><strong>Специализация:</strong> ${occupationTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Цена:</strong> ${price}</li>

@@ -227,6 +227,7 @@ export class JobRequestService {
         occupationTitle: updatedRequest.occupation.title,
         categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
+        apartment: updatedRequest.apartment,
         requestId: updatedRequest.id,
         price: updatedRequest.category.price,
       });
