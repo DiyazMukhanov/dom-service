@@ -23,6 +23,9 @@ export class CreateJobRequestDto {
   @IsString()
   address: string;
 
+  @IsString()
+  apartment: string;
+
   @IsOptional()
   @IsEmail()
   email: string;

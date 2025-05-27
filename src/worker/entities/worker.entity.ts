@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Occupation } from '../../occupations/entities/occupation.entity';
 import { Rating } from '../../ratings/entities/rating.entity';
+import { City } from '../../cities/entities/city.entity';
 
 @Entity('workers')
 export class Worker {
@@ -38,4 +39,11 @@ export class Worker {
 
   @Column({ nullable: true })
   occupation_id: number;
+
+  @ManyToOne(() => City, { eager: true, nullable: true })
+  @JoinColumn({ name: 'cityId' })
+  city: City;
+
+  @Column({ nullable: true })
+  cityId: number;
 }

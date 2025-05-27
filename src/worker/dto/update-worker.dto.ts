@@ -20,4 +20,8 @@ export class UpdateWorkerDto {
   @IsOptional()
   @IsInt()
   occupationId?: number;
+
+  @IsOptional()
+  @IsInt()
+  cityId?: number;
 }

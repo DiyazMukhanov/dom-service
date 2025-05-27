@@ -98,7 +98,8 @@ export class MailService {
     <p>Появилась новая заявка:</p>
     <ul>
     <li><strong>Город:</strong> ${cityName}</li>
-    <li><strong>Адрес:</strong> ${address}</li>
+    <li><strong>Улица или район:</strong> ${address}</li>
+    <li><strong>Квартира:</strong> Появится после принятия заявки</li>
     <li><strong>Специалист:</strong> ${occupationTitle}</li>
      <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
@@ -125,6 +126,7 @@ export class MailService {
     categoryTitle: string;
     cityName: string;
     address: string;
+    apartment: string;
     price: number;
   }) {
     const {
@@ -135,6 +137,7 @@ export class MailService {
       categoryTitle,
       cityName,
       address,
+      apartment,
       requestId,
       price,
     } = options;
@@ -152,7 +155,8 @@ export class MailService {
     <ul>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
-      <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Улица:</strong> ${address}</li>
+      <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Цена:</strong> ${price}</li>
     </ul>
     <p>Пожалуйста, оставайтесь на связи — скоро мы пришлём контакт исполнителя.</p>
@@ -255,6 +259,7 @@ export class MailService {
     clientPhone: string;
     price: number;
     requestId: number;
+    apartment: string;
   }) {
     const {
       email,
@@ -267,6 +272,7 @@ export class MailService {
       clientPhone,
       price,
       requestId,
+      apartment,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -284,6 +290,7 @@ export class MailService {
       <li><strong>Специалист:</strong> ${occupationTitle}</li>
       <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Клиент:</strong> ${clientPhone}</li>

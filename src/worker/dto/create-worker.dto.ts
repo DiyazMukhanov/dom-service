@@ -22,4 +22,7 @@ export class CreateWorkerDto {
 
   @IsEmail()
   email: string;
+
+  @IsInt()
+  cityId: number;
 }

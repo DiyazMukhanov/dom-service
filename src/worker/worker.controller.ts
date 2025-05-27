@@ -36,6 +36,7 @@ export class WorkerController {
     @Query('occupationId') occupationId?: string,
     @Query('isActive') isActive?: string,
     @Query('isEmailConfirmed') isEmailConfirmed?: string,
+    @Query('cityId') cityId?: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
   ): Promise<{ data: Worker[]; total: number }> {
@@ -43,6 +44,7 @@ export class WorkerController {
       occupationId ? +occupationId : undefined,
       isActive !== undefined ? isActive === 'true' : undefined,
       isEmailConfirmed !== undefined ? isEmailConfirmed === 'true' : undefined,
+      cityId ? +cityId : undefined,
       +page,
       +limit,
     );

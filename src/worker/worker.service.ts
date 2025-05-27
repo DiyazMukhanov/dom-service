@@ -20,6 +20,7 @@ export class WorkerService {
       phoneNumber: createWorkerDto.phoneNumber,
       fullName: createWorkerDto.fullName,
       email: createWorkerDto.email,
+      cityId: createWorkerDto.cityId,
       occupation: createWorkerDto.occupationId
         ? ({ id: createWorkerDto.occupationId } as Occupation)
         : undefined,
@@ -67,16 +68,18 @@ export class WorkerService {
     occupationId?: number,
     isActive?: boolean,
     isEmailConfirmed?: boolean,
+    cityId?: number,
     page = 1,
     limit = 10,
   ): Promise<{ data: WorkerEntity[]; total: number }> {
     const query = this.workerRepository
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.occupation', 'occupation')
-      .leftJoinAndSelect('worker.ratings', 'ratings');
+      .leftJoinAndSelect('worker.ratings', 'ratings')
+      .leftJoinAndSelect('worker.city', 'city');
 
     if (occupationId !== undefined) {
-      query.where('occupation.id = :occupationId', { occupationId });
+      query.andWhere('occupation.id = :occupationId', { occupationId });
     }
 
     if (isActive !== undefined) {
@@ -87,6 +90,10 @@ export class WorkerService {
       query.andWhere('worker.isEmailConfirmed = :isEmailConfirmed', {
         isEmailConfirmed,
       });
+    }
+
+    if (cityId !== undefined) {
+      query.andWhere('worker.cityId = :cityId', { cityId });
     }
 
     query.orderBy('worker.id', 'DESC');
@@ -138,6 +145,10 @@ export class WorkerService {
 
     if (updateWorkerDto.occupationId !== undefined) {
       existing.occupation = { id: updateWorkerDto.occupationId } as Occupation;
+    }
+
+    if (updateWorkerDto.cityId !== undefined) {
+      existing.cityId = updateWorkerDto.cityId;
     }
 
     return await this.workerRepository.save(existing);

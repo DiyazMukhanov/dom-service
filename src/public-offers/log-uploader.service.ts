@@ -33,6 +33,8 @@ export class LogUploaderService {
     offerContent,
     offerHash,
     clientIp,
+    address,
+    apartment,
   }: {
     jobRequestId: number;
     email: string;
@@ -41,6 +43,8 @@ export class LogUploaderService {
     offerContent: string;
     offerHash: string;
     clientIp: string;
+    address: string;
+    apartment: string;
   }): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `logs/job-requests/request-${jobRequestId}--${timestamp}.json`;
@@ -54,6 +58,8 @@ export class LogUploaderService {
       offerContent,
       clientIp,
       timestamp,
+      address,
+      apartment,
       accepted: true,
     };
 

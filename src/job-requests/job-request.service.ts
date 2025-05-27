@@ -51,6 +51,7 @@ export class JobRequestService {
       workDate: data.workDate,
       workTime: data.workTime,
       address: data.address,
+      apartment: data.apartment,
       comments: data.comments,
       occupation: { id: data.occupationId },
       category: { id: data.categoryId },
@@ -83,6 +84,8 @@ export class JobRequestService {
       offerContent,
       offerHash,
       clientIp: ip,
+      address: savedJobRequest.address,
+      apartment: savedJobRequest.apartment,
     });
 
     // 🔁 Подгружаем с occupation и category
@@ -98,6 +101,7 @@ export class JobRequestService {
     const matchedWorkers = await this.workerRepository.find({
       where: {
         occupation_id: data.occupationId,
+        cityId: data.cityId,
         isActive: true,
       } as FindOptionsWhere<Worker>,
     });
@@ -130,6 +134,7 @@ export class JobRequestService {
         categoryTitle: fullJobRequest.category.title,
         cityName: fullJobRequest.city.name,
         address: fullJobRequest.address,
+        apartment: fullJobRequest.apartment,
         requestId: fullJobRequest.id,
         price: fullJobRequest.category.price,
       });
@@ -206,6 +211,7 @@ export class JobRequestService {
         clientPhone: updatedRequest.phoneNumber,
         price: updatedRequest.category.price,
         requestId: updatedRequest.id,
+        apartment: updatedRequest.apartment,
       });
     }
 
@@ -231,7 +237,7 @@ export class JobRequestService {
         `✅ Ваша заявка №${updatedRequest.id} принята.\n` +
         `Исполнитель: ${worker.fullName}, ${worker.phoneNumber}\n` +
         `${updatedRequest.workDate} в ${updatedRequest.workTime}\n` +
-        `Адрес: ${updatedRequest.address}`;
+        `Адрес: ${updatedRequest.address} кв ${updatedRequest.apartment}`;
 
       await this.smsService.sendSms(jobRequest.phoneNumber, smsText);
     }
@@ -334,6 +340,7 @@ export class JobRequestService {
     const matchedWorkers = await this.workerRepository.find({
       where: {
         occupation_id: jobRequest.occupation_id,
+        cityId: jobRequest.city_id,
         isActive: true,
       } as FindOptionsWhere<Worker>,
     });
