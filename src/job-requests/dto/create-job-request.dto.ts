@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsInt,
   IsEmail,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateJobRequestDto {
@@ -38,4 +39,7 @@ export class CreateJobRequestDto {
 
   @IsInt()
   cityId: number;
+
+  @IsBoolean()
+  offerAccepted: boolean;
 }

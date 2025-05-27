@@ -11,6 +11,7 @@ import { WorkerModule } from './worker/worker.module';
 import { OccupationsModule } from './occupations/occupations.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { CategoriesModule } from './categories/categories.module';
+import { PublicOffersModule } from './public-offers/public-offers.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CategoriesModule } from './categories/categories.module';
     OccupationsModule,
     RatingsModule,
     CategoriesModule,
+    PublicOffersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

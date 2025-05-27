@@ -10,6 +10,10 @@ import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { MailService } from '../mail/mail.service';
 import { Worker } from '../worker/entities/worker.entity';
 import { SmsService } from '../sms/sms.service';
+import { generateOfferHash } from '../utils/offer-hash';
+import { PublicOffersService } from '../public-offers/public-offers.service';
+import { OfferAcceptanceLog } from '../public-offers/entities/offer-acceptance-log.entity';
+import { LogUploaderService } from '../public-offers/log-uploader.service';
 
 @Injectable()
 export class JobRequestService {
@@ -18,12 +22,28 @@ export class JobRequestService {
     private readonly jobRequestRepository: Repository<JobRequest>,
     private readonly mailService: MailService,
     private readonly smsService: SmsService,
+    private readonly logUploaderService: LogUploaderService,
 
     @InjectRepository(Worker)
     private readonly workerRepository: Repository<Worker>,
+    private readonly publicOffersService: PublicOffersService,
+
+    @InjectRepository(OfferAcceptanceLog)
+    private readonly offerAcceptanceLogRepository: Repository<OfferAcceptanceLog>,
   ) {}
 
-  async create(data: CreateJobRequestDto): Promise<JobRequest> {
+  async create(data: CreateJobRequestDto, ip: string): Promise<JobRequest> {
+    if (!data.offerAccepted) {
+      throw new BadRequestException(
+        'Вы должны принять условия публичной оферты',
+      );
+    }
+
+    const activeOffer = await this.publicOffersService.getActive();
+    const offerContent = activeOffer.content;
+    const offerVersion = activeOffer.version;
+    const offerHash = generateOfferHash(offerContent);
+
     const jobRequest = this.jobRequestRepository.create({
       name: data.name,
       email: data.email,
@@ -35,9 +55,35 @@ export class JobRequestService {
       occupation: { id: data.occupationId },
       category: { id: data.categoryId },
       city: { id: data.cityId },
+      clientIp: ip,
+      offerAccepted: data.offerAccepted,
+      offerAcceptedAt: new Date(),
+      acceptedOfferVersion: offerVersion,
+      acceptedOfferContent: offerContent,
+      acceptedOfferHash: offerHash,
     });
 
     const savedJobRequest = await this.jobRequestRepository.save(jobRequest);
+
+    await this.offerAcceptanceLogRepository.save({
+      jobRequestId: savedJobRequest.id,
+      offerVersion,
+      offerContent,
+      offerHash,
+      clientIp: ip,
+      clientEmail: data.email,
+      clientPhone: data.phoneNumber,
+    });
+
+    await this.logUploaderService.uploadOfferAcceptanceLog({
+      jobRequestId: savedJobRequest.id,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      offerVersion,
+      offerContent,
+      offerHash,
+      clientIp: ip,
+    });
 
     // 🔁 Подгружаем с occupation и category
     const fullJobRequest = await this.jobRequestRepository.findOne({

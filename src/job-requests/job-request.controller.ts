@@ -8,6 +8,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { JobRequestService } from './job-request.service';
 import { JobRequest } from './entities/job-request.entity';
@@ -15,14 +16,23 @@ import { CreateJobRequestDto } from './dto/create-job-request.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Request } from 'express';
 
 @Controller('job-requests')
 export class JobRequestController {
   constructor(private readonly jobRequestService: JobRequestService) {}
 
   @Post()
-  async create(@Body() data: CreateJobRequestDto): Promise<JobRequest> {
-    return this.jobRequestService.create(data);
+  async create(
+    @Body() data: CreateJobRequestDto,
+    @Req() req: Request,
+  ): Promise<JobRequest> {
+    const ip =
+      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+      req.socket?.remoteAddress ||
+      'unknown';
+
+    return this.jobRequestService.create(data, ip);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

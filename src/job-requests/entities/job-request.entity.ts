@@ -72,6 +72,24 @@ export class JobRequest {
   @Column()
   city_id: number;
 
+  @Column({ default: false })
+  offerAccepted: boolean;
+
+  @Column()
+  offerAcceptedAt: Date;
+
+  @Column()
+  acceptedOfferVersion: string;
+
+  @Column('text')
+  acceptedOfferContent: string;
+
+  @Column()
+  acceptedOfferHash: string;
+
+  @Column({ nullable: true })
+  clientIp: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

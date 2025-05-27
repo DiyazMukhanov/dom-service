@@ -8,6 +8,8 @@ import { Occupation } from '../occupations/entities/occupation.entity';
 import { Worker } from '../worker/entities/worker.entity';
 import { Rating } from '../ratings/entities/rating.entity';
 import { Category } from '../categories/entities/category.entity';
+import { PublicOffer } from '../public-offers/entities/public-offer.entity';
+import { OfferAcceptanceLog } from '../public-offers/entities/offer-acceptance-log.entity';
 
 export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -39,6 +41,8 @@ export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
           Worker,
           Rating,
           Category,
+          PublicOffer,
+          OfferAcceptanceLog,
         ],
         synchronize: false,
       };
