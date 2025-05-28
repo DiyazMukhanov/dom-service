@@ -37,6 +37,15 @@ export class OfferAcceptanceLog {
   @Column({ nullable: true })
   clientPhone: string;
 
+  @Column({ nullable: true })
+  clientAddress: string;
+
+  @Column({ nullable: true })
+  clientHouse: string;
+
+  @Column({ nullable: true })
+  clientApartment: string;
+
   @CreateDateColumn()
   acceptedAt: Date;
 }

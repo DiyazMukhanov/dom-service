@@ -68,7 +68,9 @@ export class MailService {
     baseUrl?: string;
     workerId: number;
     address: string;
+    house: string;
     price: number;
+    comments: string;
   }) {
     const {
       email,
@@ -81,7 +83,9 @@ export class MailService {
       cityName,
       workerId,
       address,
+      house,
       price,
+      comments,
       baseUrl = 'https://service-doma.kz',
     } = options;
 
@@ -91,7 +95,7 @@ export class MailService {
       year: 'numeric',
     }).format(new Date(workDate));
 
-    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&workTime=${workTime}&workDate=${workDate}&categoryTitle=${categoryTitle}&price=${price}&cityName=${cityName}`;
+    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&house=${house}&workTime=${workTime}&workDate=${workDate}&categoryTitle=${categoryTitle}&price=${price}&cityName=${cityName}&comments=${comments}`;
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
@@ -99,11 +103,13 @@ export class MailService {
     <ul>
     <li><strong>Город:</strong> ${cityName}</li>
     <li><strong>Улица или район:</strong> ${address}</li>
+    <li><strong>Дом:</strong> ${house}</li>
     <li><strong>Квартира:</strong> Появится после принятия заявки</li>
     <li><strong>Специалист:</strong> ${occupationTitle}</li>
      <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
+      <li><strong>Комментарии:</strong> ${comments}</li>
       <li><strong>💵 Оплата:</strong> ${price.toLocaleString('ru-RU')} ₸</li>
     </ul>
     <p><a href="${bookingLink}">Нажмите здесь, чтобы принять заявку</a></p>
@@ -126,8 +132,10 @@ export class MailService {
     categoryTitle: string;
     cityName: string;
     address: string;
+    house: string;
     apartment: string;
     price: number;
+    comments: string;
   }) {
     const {
       email,
@@ -137,9 +145,11 @@ export class MailService {
       categoryTitle,
       cityName,
       address,
+      house,
       apartment,
       requestId,
       price,
+      comments,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -156,8 +166,10 @@ export class MailService {
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Улица:</strong> ${address}</li>
+      <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Цена:</strong> ${price}</li>
+      <li><strong>Комментарии:</strong> ${comments}</li>
     </ul>
     <p>Пожалуйста, оставайтесь на связи — скоро мы пришлём контакт исполнителя.</p>
   `;
@@ -181,8 +193,10 @@ export class MailService {
     occupationTitle: string;
     categoryTitle: string;
     address: string;
+    house: string;
     apartment: string;
     price: number;
+    comments: string;
   }) {
     const {
       email,
@@ -194,9 +208,11 @@ export class MailService {
       occupationTitle,
       categoryTitle,
       address,
+      house,
       apartment,
       requestId,
       price,
+      comments,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -214,10 +230,12 @@ export class MailService {
       <li><strong>Услуга:</strong> ${categoryTitle}</li>
       <li><strong>Специализация:</strong> ${occupationTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Цена:</strong> ${price}</li>
+      <li><strong>Комментарии:</strong> ${comments}</li>
     </ul>
     <p>Ожидайте звонка от исполнителя.</p>
   `;
@@ -257,12 +275,14 @@ export class MailService {
     occupationTitle: string;
     categoryTitle: string;
     address: string;
+    house: string;
     workDate: string;
     workTime: string;
     clientPhone: string;
     price: number;
     requestId: number;
     apartment: string;
+    comments: string;
   }) {
     const {
       email,
@@ -270,12 +290,14 @@ export class MailService {
       occupationTitle,
       categoryTitle,
       address,
+      house,
       workDate,
       workTime,
       clientPhone,
       price,
       requestId,
       apartment,
+      comments,
     } = options;
 
     const formattedDate = new Intl.DateTimeFormat('ru-RU', {
@@ -293,11 +315,13 @@ export class MailService {
       <li><strong>Специалист:</strong> ${occupationTitle}</li>
       <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
+      <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Клиент:</strong> ${clientPhone}</li>
       <li><strong>💵 Оплата:</strong> ${formattedPrice} ₸</li>
+      <li><strong>💵 Комментарии:</strong> ${comments} ₸</li>
     </ul>
   `;
 

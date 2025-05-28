@@ -51,6 +51,7 @@ export class JobRequestService {
       workDate: data.workDate,
       workTime: data.workTime,
       address: data.address,
+      house: data.house,
       apartment: data.apartment,
       comments: data.comments,
       occupation: { id: data.occupationId },
@@ -74,6 +75,9 @@ export class JobRequestService {
       clientIp: ip,
       clientEmail: data.email,
       clientPhone: data.phoneNumber,
+      clientAddress: data.address,
+      clientHouse: data.house,
+      clientApartment: data.apartment,
     });
 
     await this.logUploaderService.uploadOfferAcceptanceLog({
@@ -85,6 +89,7 @@ export class JobRequestService {
       offerHash,
       clientIp: ip,
       address: savedJobRequest.address,
+      house: savedJobRequest.house,
       apartment: savedJobRequest.apartment,
     });
 
@@ -118,10 +123,12 @@ export class JobRequestService {
         workDate: savedJobRequest.workDate,
         workTime: savedJobRequest.workTime,
         address: savedJobRequest.address,
+        house: savedJobRequest.house,
         occupationTitle: fullJobRequest.occupation.title,
         categoryTitle: fullJobRequest.category.title,
         cityName: fullJobRequest.city.name,
         price: fullJobRequest.category.price,
+        comments: fullJobRequest.comments,
       });
     }
 
@@ -134,9 +141,11 @@ export class JobRequestService {
         categoryTitle: fullJobRequest.category.title,
         cityName: fullJobRequest.city.name,
         address: fullJobRequest.address,
+        house: fullJobRequest.house,
         apartment: fullJobRequest.apartment,
         requestId: fullJobRequest.id,
         price: fullJobRequest.category.price,
+        comments: fullJobRequest.comments,
       });
     }
 
@@ -151,7 +160,9 @@ export class JobRequestService {
         `✅ Ваша заявка принята!\n` +
         `${fullJobRequest.category.title}, ${fullJobRequest.city.name}\n` +
         `${formattedDate} в ${data.workTime}\n` +
-        `Адрес: ${data.address}\n` +
+        `Улица/Район: ${data.address}\n` +
+        `Дом: ${data.house}\n` +
+        `Квартира: ${data.apartment}\n` +
         `Мы ищем специалиста — ожидайте.`;
 
       await this.smsService.sendSms(data.phoneNumber, smsText);
@@ -163,7 +174,7 @@ export class JobRequestService {
   async book(jobRequestId: number, workerId: number): Promise<JobRequest> {
     const jobRequest = await this.jobRequestRepository.findOne({
       where: { id: jobRequestId },
-      relations: ['occupation', 'category'], // 👈 нужно, чтобы были доступны .title и .price
+      relations: ['occupation', 'category'],
     });
 
     if (!jobRequest) {
@@ -206,12 +217,14 @@ export class JobRequestService {
         occupationTitle: updatedRequest.occupation.title,
         categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
+        house: updatedRequest.house,
         workDate: updatedRequest.workDate,
         workTime: updatedRequest.workTime,
         clientPhone: updatedRequest.phoneNumber,
         price: updatedRequest.category.price,
         requestId: updatedRequest.id,
         apartment: updatedRequest.apartment,
+        comments: updatedRequest.comments,
       });
     }
 
@@ -227,9 +240,11 @@ export class JobRequestService {
         occupationTitle: updatedRequest.occupation.title,
         categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
+        house: updatedRequest.house,
         apartment: updatedRequest.apartment,
         requestId: updatedRequest.id,
         price: updatedRequest.category.price,
+        comments: updatedRequest.comments,
       });
     }
 
@@ -238,7 +253,9 @@ export class JobRequestService {
         `✅ Ваша заявка №${updatedRequest.id} принята.\n` +
         `Исполнитель: ${worker.fullName}, ${worker.phoneNumber}\n` +
         `${updatedRequest.workDate} в ${updatedRequest.workTime}\n` +
-        `Адрес: ${updatedRequest.address} кв ${updatedRequest.apartment}`;
+        `Улица/Район: ${updatedRequest.address}\n` +
+        `Дом: ${updatedRequest.house}\n` +
+        `Квартира: ${updatedRequest.apartment}`;
 
       await this.smsService.sendSms(jobRequest.phoneNumber, smsText);
     }

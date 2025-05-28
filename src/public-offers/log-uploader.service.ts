@@ -34,6 +34,7 @@ export class LogUploaderService {
     offerHash,
     clientIp,
     address,
+    house,
     apartment,
   }: {
     jobRequestId: number;
@@ -44,6 +45,7 @@ export class LogUploaderService {
     offerHash: string;
     clientIp: string;
     address: string;
+    house: string;
     apartment: string;
   }): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -59,6 +61,7 @@ export class LogUploaderService {
       clientIp,
       timestamp,
       address,
+      house,
       apartment,
       accepted: true,
     };

@@ -35,6 +35,9 @@ export class JobRequest {
   address: string;
 
   @Column({ nullable: true })
+  house: string;
+
+  @Column({ nullable: true })
   apartment: string;
 
   @Column({ nullable: true })
