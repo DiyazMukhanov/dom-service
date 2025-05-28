@@ -69,14 +69,19 @@ export class WorkerService {
     isActive?: boolean,
     isEmailConfirmed?: boolean,
     cityId?: number,
+    minAverageRating?: number, // новое условие
     page = 1,
     limit = 10,
-  ): Promise<{ data: WorkerEntity[]; total: number }> {
+  ): Promise<{ data: any[]; total: number }> {
     const query = this.workerRepository
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.occupation', 'occupation')
-      .leftJoinAndSelect('worker.ratings', 'ratings')
-      .leftJoinAndSelect('worker.city', 'city');
+      .leftJoin('worker.ratings', 'ratings')
+      .leftJoinAndSelect('worker.city', 'city')
+      .addSelect('AVG(ratings.value)', 'averageRating')
+      .groupBy('worker.id')
+      .addGroupBy('occupation.id')
+      .addGroupBy('city.id');
 
     if (occupationId !== undefined) {
       query.andWhere('occupation.id = :occupationId', { occupationId });
@@ -96,26 +101,57 @@ export class WorkerService {
       query.andWhere('worker.cityId = :cityId', { cityId });
     }
 
-    query.orderBy('worker.id', 'DESC');
+    if (minAverageRating !== undefined) {
+      query.having('AVG(ratings.value) <= :minRating', {
+        minRating: minAverageRating,
+      });
+    }
 
+    query.orderBy('worker.id', 'DESC');
     query.skip((page - 1) * limit).take(limit);
 
-    const [data, total] = await query.getManyAndCount();
+    const [workers, total] = await query.getManyAndCount();
+
+    // Для каждого worker в entities — вычисли средний рейтинг
+    const rawResults = await query.getRawMany();
+
+    const data = workers.map((worker, index) => {
+      const avg = parseFloat(rawResults[index]?.averageRating) || null;
+      return {
+        ...worker,
+        averageRating: avg,
+      };
+    });
 
     return { data, total };
   }
 
-  async findOne(id: number): Promise<WorkerEntity> {
-    const worker = await this.workerRepository.findOne({
-      where: { id },
-      relations: ['occupation', 'ratings'],
-    });
+  async findOne(id: number): Promise<any> {
+    const worker = await this.workerRepository
+      .createQueryBuilder('worker')
+      .leftJoinAndSelect('worker.occupation', 'occupation')
+      .leftJoinAndSelect('worker.city', 'city')
+      .leftJoin('worker.ratings', 'ratings')
+      .where('worker.id = :id', { id })
+      .addSelect('AVG(ratings.value)', 'averageRating')
+      .groupBy('worker.id')
+      .addGroupBy('occupation.id')
+      .addGroupBy('city.id')
+      .getRawAndEntities();
 
-    if (!worker) {
+    const entity = worker.entities[0];
+    const raw = worker.raw[0];
+
+    if (!entity) {
       throw new NotFoundException(`Работник с ID ${id} не найден`);
     }
 
-    return worker;
+    return {
+      ...entity,
+      averageRating: raw?.averageRating
+        ? parseFloat(raw.averageRating).toFixed(2)
+        : null,
+    };
   }
 
   async update(

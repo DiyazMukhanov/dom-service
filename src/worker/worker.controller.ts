@@ -37,6 +37,7 @@ export class WorkerController {
     @Query('isActive') isActive?: string,
     @Query('isEmailConfirmed') isEmailConfirmed?: string,
     @Query('cityId') cityId?: string,
+    @Query('minAverageRating') minAverageRating?: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
   ): Promise<{ data: Worker[]; total: number }> {
@@ -45,6 +46,7 @@ export class WorkerController {
       isActive !== undefined ? isActive === 'true' : undefined,
       isEmailConfirmed !== undefined ? isEmailConfirmed === 'true' : undefined,
       cityId ? +cityId : undefined,
+      minAverageRating ? +minAverageRating : undefined,
       +page,
       +limit,
     );
