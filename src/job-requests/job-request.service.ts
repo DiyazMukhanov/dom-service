@@ -149,24 +149,24 @@ export class JobRequestService {
       });
     }
 
-    if (data.phoneNumber) {
-      const formattedDate = new Intl.DateTimeFormat('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(new Date(data.workDate));
-
-      const smsText =
-        `✅ Ваша заявка принята!\n` +
-        `${fullJobRequest.category.title}, ${fullJobRequest.city.name}\n` +
-        `${formattedDate} в ${data.workTime}\n` +
-        `Улица/Район: ${data.address}\n` +
-        `Дом: ${data.house}\n` +
-        `Квартира: ${data.apartment}\n` +
-        `Мы ищем специалиста — ожидайте.`;
-
-      await this.smsService.sendSms(data.phoneNumber, smsText);
-    }
+    // if (data.phoneNumber) {
+    //   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+    //     day: 'numeric',
+    //     month: 'long',
+    //     year: 'numeric',
+    //   }).format(new Date(data.workDate));
+    //
+    //   const smsText =
+    //     `✅ Ваша заявка принята!\n` +
+    //     `${fullJobRequest.category.title}, ${fullJobRequest.city.name}\n` +
+    //     `${formattedDate} в ${data.workTime}\n` +
+    //     `Улица/Район: ${data.address}\n` +
+    //     `Дом: ${data.house}\n` +
+    //     `Квартира: ${data.apartment}\n` +
+    //     `Мы ищем специалиста — ожидайте.`;
+    //
+    //   await this.smsService.sendSms(data.phoneNumber, smsText);
+    // }
 
     return savedJobRequest;
   }
@@ -252,6 +252,7 @@ export class JobRequestService {
       const smsText =
         `✅ Ваша заявка №${updatedRequest.id} принята.\n` +
         `Исполнитель: ${worker.fullName}, ${worker.phoneNumber}\n` +
+        `Работа: ${updatedRequest.category.title}\n` +
         `${updatedRequest.workDate} в ${updatedRequest.workTime}\n` +
         `Улица/Район: ${updatedRequest.address}\n` +
         `Дом: ${updatedRequest.house}\n` +
