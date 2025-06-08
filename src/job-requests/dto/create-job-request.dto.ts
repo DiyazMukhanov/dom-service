@@ -41,9 +41,6 @@ export class CreateJobRequestDto {
   occupationId: number;
 
   @IsInt()
-  categoryId: number;
-
-  @IsInt()
   cityId: number;
 
   @IsBoolean()

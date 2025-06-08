@@ -63,13 +63,11 @@ export class MailService {
     workDate: string;
     workTime: string;
     occupationTitle: string;
-    categoryTitle: string;
     cityName: string;
     baseUrl?: string;
     workerId: number;
     address: string;
     house: string;
-    price: number;
     comments: string;
   }) {
     const {
@@ -79,12 +77,10 @@ export class MailService {
       workDate,
       workTime,
       occupationTitle,
-      categoryTitle,
       cityName,
       workerId,
       address,
       house,
-      price,
       comments,
       baseUrl = 'https://service-doma.kz',
     } = options;
@@ -95,7 +91,7 @@ export class MailService {
       year: 'numeric',
     }).format(new Date(workDate));
 
-    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&house=${house}&workTime=${workTime}&workDate=${workDate}&categoryTitle=${categoryTitle}&price=${price}&cityName=${cityName}&comments=${comments}`;
+    const bookingLink = `${baseUrl}/requests/book/${jobRequestId}?workerId=${workerId}&address=${address}&house=${house}&workTime=${workTime}&workDate=${workDate}&cityName=${cityName}&comments=${comments}`;
 
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
@@ -106,11 +102,9 @@ export class MailService {
     <li><strong>Дом:</strong> ${house}</li>
     <li><strong>Квартира:</strong> Появится после принятия заявки</li>
     <li><strong>Специалист:</strong> ${occupationTitle}</li>
-     <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Комментарии:</strong> ${comments}</li>
-      <li><strong>💵 Оплата:</strong> ${price.toLocaleString('ru-RU')} ₸</li>
     </ul>
     <p><a href="${bookingLink}">Нажмите здесь, чтобы принять заявку</a></p>
   `;
@@ -129,12 +123,10 @@ export class MailService {
     name: string;
     workDate: string;
     workTime: string;
-    categoryTitle: string;
     cityName: string;
     address: string;
     house: string;
     apartment: string;
-    price: number;
     comments: string;
   }) {
     const {
@@ -142,13 +134,11 @@ export class MailService {
       name,
       workDate,
       workTime,
-      categoryTitle,
       cityName,
       address,
       house,
       apartment,
       requestId,
-      price,
       comments,
     } = options;
 
@@ -160,7 +150,7 @@ export class MailService {
 
     const html = `
     <p>Здравствуйте, ${name}!</p>
-    <p>Спасибо за вашу заявку #${requestId} на услугу <strong>${categoryTitle}</strong> в городе <strong>${cityName}</strong>.</p>
+    <p>Спасибо за вашу заявку #${requestId} в городе <strong>${cityName}</strong>.</p>
     <p>Мы уже ищем специалиста для вас!</p>
     <ul>
       <li><strong>Дата:</strong> ${formattedDate}</li>
@@ -168,7 +158,6 @@ export class MailService {
       <li><strong>Улица:</strong> ${address}</li>
       <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
-      <li><strong>Цена:</strong> ${price}</li>
       <li><strong>Комментарии:</strong> ${comments}</li>
     </ul>
     <p>Пожалуйста, оставайтесь на связи — скоро мы пришлём контакт исполнителя.</p>
@@ -191,11 +180,9 @@ export class MailService {
     workDate: string;
     workTime: string;
     occupationTitle: string;
-    categoryTitle: string;
     address: string;
     house: string;
     apartment: string;
-    price: number;
     comments: string;
   }) {
     const {
@@ -206,12 +193,10 @@ export class MailService {
       workDate,
       workTime,
       occupationTitle,
-      categoryTitle,
       address,
       house,
       apartment,
       requestId,
-      price,
       comments,
     } = options;
 
@@ -227,14 +212,12 @@ export class MailService {
     <p><strong>Исполнитель:</strong> ${workerName}</p>
     <p><strong>Телефон исполнителя:</strong> ${workerPhone}</p>
     <ul>
-      <li><strong>Услуга:</strong> ${categoryTitle}</li>
       <li><strong>Специализация:</strong> ${occupationTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
       <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
-      <li><strong>Цена:</strong> ${price}</li>
       <li><strong>Комментарии:</strong> ${comments}</li>
     </ul>
     <p>Ожидайте звонка от исполнителя.</p>
@@ -273,13 +256,11 @@ export class MailService {
     email: string;
     fullName: string;
     occupationTitle: string;
-    categoryTitle: string;
     address: string;
     house: string;
     workDate: string;
     workTime: string;
     clientPhone: string;
-    price: number;
     requestId: number;
     apartment: string;
     comments: string;
@@ -288,13 +269,11 @@ export class MailService {
       email,
       fullName,
       occupationTitle,
-      categoryTitle,
       address,
       house,
       workDate,
       workTime,
       clientPhone,
-      price,
       requestId,
       apartment,
       comments,
@@ -306,21 +285,17 @@ export class MailService {
       year: 'numeric',
     }).format(new Date(workDate));
 
-    const formattedPrice = price.toLocaleString('ru-RU');
-
     const html = `
     <p>Здравствуйте, ${fullName}!</p>
     <p>Вы успешно забронировали заявку #${requestId}:</p>
     <ul>
       <li><strong>Специалист:</strong> ${occupationTitle}</li>
-      <li><strong>Работа:</strong> ${categoryTitle}</li>
       <li><strong>Адрес:</strong> ${address}</li>
       <li><strong>Дом:</strong> ${house}</li>
       <li><strong>Квартира:</strong> ${apartment}</li>
       <li><strong>Дата:</strong> ${formattedDate}</li>
       <li><strong>Время:</strong> ${workTime}</li>
       <li><strong>Клиент:</strong> ${clientPhone}</li>
-      <li><strong>💵 Оплата:</strong> ${formattedPrice} ₸</li>
       <li><strong>💵 Комментарии:</strong> ${comments} ₸</li>
     </ul>
   `;
@@ -339,7 +314,6 @@ export class MailService {
     fullName,
     jobRequestId,
     occupationTitle,
-    categoryTitle,
     cityName,
     workDate,
     workTime,
@@ -349,7 +323,6 @@ export class MailService {
     fullName: string;
     jobRequestId: number;
     occupationTitle: string;
-    categoryTitle: string;
     cityName: string;
     workDate: string;
     workTime: string;
@@ -358,7 +331,7 @@ export class MailService {
     const subject = `🚫 Заявка №${jobRequestId} отменена`;
     const html = `
     <p>Здравствуйте, ${fullName}.</p>
-    <p>Заявка №${jobRequestId} (${occupationTitle} / ${categoryTitle}) в городе ${cityName} была отменена.</p>
+    <p>Заявка №${jobRequestId} (${occupationTitle} в городе ${cityName} была отменена.</p>
     <p><strong>Дата:</strong> ${workDate}<br/>
     <strong>Время:</strong> ${workTime}<br/>
     <strong>Адрес:</strong> ${address}</p>
@@ -378,7 +351,6 @@ export class MailService {
     fullName,
     jobRequestId,
     occupationTitle,
-    categoryTitle,
     workDate,
     workTime,
     address,
@@ -387,7 +359,6 @@ export class MailService {
     fullName: string;
     jobRequestId: number;
     occupationTitle: string;
-    categoryTitle: string;
     workDate: string;
     workTime: string;
     address: string;
@@ -396,7 +367,7 @@ export class MailService {
     const html = `
     <p>Здравствуйте, ${fullName}.</p>
     <p>Ваша заявка была отменена.</p>
-    <p><strong>Заявка:</strong> ${occupationTitle} / ${categoryTitle}</p>
+    <p><strong>Заявка:</strong> ${occupationTitle}</p>
     <p><strong>Дата:</strong> ${workDate}<br/>
     <strong>Время:</strong> ${workTime}<br/>
     <strong>Адрес:</strong> ${address}</p>

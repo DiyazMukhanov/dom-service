@@ -32,7 +32,10 @@ export class JobRequestService {
     private readonly offerAcceptanceLogRepository: Repository<OfferAcceptanceLog>,
   ) {}
 
-  async create(data: CreateJobRequestDto, ip: string): Promise<JobRequest> {
+  async createByClient(
+    data: CreateJobRequestDto,
+    ip: string,
+  ): Promise<JobRequest> {
     if (!data.offerAccepted) {
       throw new BadRequestException(
         'Вы должны принять условия публичной оферты',
@@ -55,7 +58,6 @@ export class JobRequestService {
       apartment: data.apartment,
       comments: data.comments,
       occupation: { id: data.occupationId },
-      category: { id: data.categoryId },
       city: { id: data.cityId },
       clientIp: ip,
       offerAccepted: data.offerAccepted,
@@ -73,7 +75,6 @@ export class JobRequestService {
       offerContent,
       offerHash,
       clientIp: ip,
-      clientEmail: data.email,
       clientPhone: data.phoneNumber,
       clientAddress: data.address,
       clientHouse: data.house,
@@ -82,7 +83,6 @@ export class JobRequestService {
 
     await this.logUploaderService.uploadOfferAcceptanceLog({
       jobRequestId: savedJobRequest.id,
-      email: data.email,
       phoneNumber: data.phoneNumber,
       offerVersion,
       offerContent,
@@ -93,43 +93,14 @@ export class JobRequestService {
       apartment: savedJobRequest.apartment,
     });
 
-    // 🔁 Подгружаем с occupation и category
+    // 🔁 Подгружаем с occupation
     const fullJobRequest = await this.jobRequestRepository.findOne({
       where: { id: savedJobRequest.id },
-      relations: ['occupation', 'category', 'city'],
+      relations: ['occupation', 'city'],
     });
 
     if (!fullJobRequest) {
       throw new NotFoundException('JobRequest не найден после сохранения');
-    }
-
-    const matchedWorkers = await this.workerRepository.find({
-      where: {
-        occupation_id: data.occupationId,
-        cityId: data.cityId,
-        isActive: true,
-      } as FindOptionsWhere<Worker>,
-    });
-
-    // ✅ Отправим email каждому работнику
-    for (const worker of matchedWorkers) {
-      if (!worker.email) continue;
-
-      await this.mailService.sendJobRequestToWorker({
-        email: worker.email,
-        fullName: worker.fullName,
-        workerId: worker.id,
-        jobRequestId: savedJobRequest.id,
-        workDate: savedJobRequest.workDate,
-        workTime: savedJobRequest.workTime,
-        address: savedJobRequest.address,
-        house: savedJobRequest.house,
-        occupationTitle: fullJobRequest.occupation.title,
-        categoryTitle: fullJobRequest.category.title,
-        cityName: fullJobRequest.city.name,
-        price: fullJobRequest.category.price,
-        comments: fullJobRequest.comments,
-      });
     }
 
     if (data.email) {
@@ -138,43 +109,144 @@ export class JobRequestService {
         name: data.name,
         workDate: data.workDate,
         workTime: data.workTime,
-        categoryTitle: fullJobRequest.category.title,
         cityName: fullJobRequest.city.name,
         address: fullJobRequest.address,
         house: fullJobRequest.house,
         apartment: fullJobRequest.apartment,
         requestId: fullJobRequest.id,
-        price: fullJobRequest.category.price,
         comments: fullJobRequest.comments,
       });
     }
 
-    // if (data.phoneNumber) {
-    //   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
-    //     day: 'numeric',
-    //     month: 'long',
-    //     year: 'numeric',
-    //   }).format(new Date(data.workDate));
-    //
-    //   const smsText =
-    //     `✅ Ваша заявка принята!\n` +
-    //     `${fullJobRequest.category.title}, ${fullJobRequest.city.name}\n` +
-    //     `${formattedDate} в ${data.workTime}\n` +
-    //     `Улица/Район: ${data.address}\n` +
-    //     `Дом: ${data.house}\n` +
-    //     `Квартира: ${data.apartment}\n` +
-    //     `Мы ищем специалиста — ожидайте.`;
-    //
-    //   await this.smsService.sendSms(data.phoneNumber, smsText);
-    // }
-
     return savedJobRequest;
+  }
+
+  async create(data: CreateJobRequestDto): Promise<JobRequest> {
+    const jobRequest = this.jobRequestRepository.create({
+      name: data.name,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      workDate: data.workDate,
+      workTime: data.workTime,
+      address: data.address,
+      house: data.house,
+      apartment: data.apartment,
+      comments: data.comments,
+      occupation: { id: data.occupationId },
+      occupation_id: data.occupationId,
+      city: { id: data.cityId },
+      city_id: data.cityId,
+      offerAccepted: false,
+    });
+
+    return this.jobRequestRepository.save(jobRequest);
+  }
+
+  generateOfferLink(jobRequest: JobRequest): string {
+    const baseUrl = 'https://service-doma.kz/accept-offer';
+    const query = new URLSearchParams({
+      requestId: jobRequest.id.toString(),
+      phone: jobRequest.phoneNumber,
+      address: jobRequest.address,
+      date: jobRequest.workDate,
+      time: jobRequest.workTime,
+    });
+
+    return `${baseUrl}?${query.toString()}`;
+  }
+
+  async acceptOffer(jobRequestId: number, ip: string): Promise<JobRequest> {
+    const jobRequest = await this.jobRequestRepository.findOne({
+      where: { id: jobRequestId },
+    });
+
+    if (!jobRequest) {
+      throw new NotFoundException(`Заявка с ID ${jobRequestId} не найдена`);
+    }
+
+    const activeOffer = await this.publicOffersService.getActive();
+    const offerContent = activeOffer.content;
+    const offerVersion = activeOffer.version;
+    const offerHash = generateOfferHash(offerContent);
+
+    jobRequest.offerAccepted = true;
+    jobRequest.offerAcceptedAt = new Date();
+    jobRequest.acceptedOfferVersion = offerVersion;
+    jobRequest.acceptedOfferContent = offerContent;
+    jobRequest.acceptedOfferHash = offerHash;
+    jobRequest.clientIp = ip;
+
+    await this.offerAcceptanceLogRepository.save({
+      jobRequestId: jobRequest.id,
+      offerVersion,
+      offerContent,
+      offerHash,
+      clientIp: ip,
+      clientPhone: jobRequest.phoneNumber,
+      clientAddress: jobRequest.address,
+      clientHouse: jobRequest.house,
+      clientApartment: jobRequest.apartment,
+    });
+
+    await this.logUploaderService.uploadOfferAcceptanceLog({
+      jobRequestId: jobRequest.id,
+      phoneNumber: jobRequest.phoneNumber,
+      offerVersion,
+      offerContent,
+      offerHash,
+      clientIp: ip,
+      address: jobRequest.address,
+      house: jobRequest.house,
+      apartment: jobRequest.apartment,
+    });
+
+    return this.jobRequestRepository.save(jobRequest);
+  }
+
+  async sendRequestToWorkers(jobRequestId: number): Promise<void> {
+    const fullJobRequest = await this.jobRequestRepository.findOne({
+      where: { id: jobRequestId },
+      relations: ['occupation', 'city'],
+    });
+
+    if (!fullJobRequest) {
+      throw new NotFoundException('JobRequest не найден после сохранения');
+    }
+
+    const matchedWorkers = await this.workerRepository.find({
+      where: {
+        occupation_id: fullJobRequest.occupation_id,
+        cityId: fullJobRequest.city_id,
+        isActive: true,
+      } as FindOptionsWhere<Worker>,
+    });
+
+    for (const worker of matchedWorkers) {
+      if (!worker.email) continue;
+
+      await this.mailService.sendJobRequestToWorker({
+        email: worker.email,
+        fullName: worker.fullName,
+        workerId: worker.id,
+        jobRequestId: fullJobRequest.id,
+        workDate: fullJobRequest.workDate,
+        workTime: fullJobRequest.workTime,
+        address: fullJobRequest.address,
+        house: fullJobRequest.house,
+        occupationTitle: fullJobRequest.occupation.title,
+        cityName: fullJobRequest.city.name,
+        comments: fullJobRequest.comments,
+      });
+    }
+
+    fullJobRequest.wasSentToMasters = true;
+    await this.jobRequestRepository.save(fullJobRequest);
   }
 
   async book(jobRequestId: number, workerId: number): Promise<JobRequest> {
     const jobRequest = await this.jobRequestRepository.findOne({
       where: { id: jobRequestId },
-      relations: ['occupation', 'category'],
+      relations: ['occupation'],
     });
 
     if (!jobRequest) {
@@ -215,20 +287,17 @@ export class JobRequestService {
         email: worker.email,
         fullName: worker.fullName,
         occupationTitle: updatedRequest.occupation.title,
-        categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
         house: updatedRequest.house,
         workDate: updatedRequest.workDate,
         workTime: updatedRequest.workTime,
         clientPhone: updatedRequest.phoneNumber,
-        price: updatedRequest.category.price,
         requestId: updatedRequest.id,
         apartment: updatedRequest.apartment,
         comments: updatedRequest.comments,
       });
     }
 
-    // Notify client via email and SMS
     if (worker && jobRequest.email) {
       await this.mailService.sendBookingInfoToClient({
         email: jobRequest.email,
@@ -238,27 +307,12 @@ export class JobRequestService {
         workDate: updatedRequest.workDate,
         workTime: updatedRequest.workTime,
         occupationTitle: updatedRequest.occupation.title,
-        categoryTitle: updatedRequest.category.title,
         address: updatedRequest.address,
         house: updatedRequest.house,
         apartment: updatedRequest.apartment,
         requestId: updatedRequest.id,
-        price: updatedRequest.category.price,
         comments: updatedRequest.comments,
       });
-    }
-
-    if (worker && jobRequest.phoneNumber) {
-      const smsText =
-        `✅ Ваша заявка №${updatedRequest.id} принята.\n` +
-        `Исполнитель: ${worker.fullName}, ${worker.phoneNumber}\n` +
-        `Работа: ${updatedRequest.category.title}\n` +
-        `${updatedRequest.workDate} в ${updatedRequest.workTime}\n` +
-        `Улица/Район: ${updatedRequest.address}\n` +
-        `Дом: ${updatedRequest.house}\n` +
-        `Квартира: ${updatedRequest.apartment}`;
-
-      await this.smsService.sendSms(jobRequest.phoneNumber, smsText);
     }
 
     return updatedRequest;
@@ -274,7 +328,6 @@ export class JobRequestService {
     const query = this.jobRequestRepository
       .createQueryBuilder('request')
       .leftJoinAndSelect('request.occupation', 'occupation')
-      .leftJoinAndSelect('request.category', 'category')
       .leftJoinAndSelect('request.city', 'city')
       .orderBy('request.createdAt', 'DESC')
       .skip((page - 1) * limit)
@@ -341,7 +394,7 @@ export class JobRequestService {
   async cancelRequest(jobRequestId: number): Promise<JobRequest> {
     const jobRequest = await this.jobRequestRepository.findOne({
       where: { id: jobRequestId },
-      relations: ['occupation', 'category', 'city'],
+      relations: ['occupation', 'city'],
     });
 
     if (!jobRequest) {
@@ -372,7 +425,6 @@ export class JobRequestService {
         fullName: worker.fullName,
         jobRequestId: jobRequest.id,
         occupationTitle: jobRequest.occupation.title,
-        categoryTitle: jobRequest.category.title,
         cityName: jobRequest.city.name,
         workDate: jobRequest.workDate,
         workTime: jobRequest.workTime,
@@ -387,7 +439,6 @@ export class JobRequestService {
         fullName: jobRequest.name,
         jobRequestId: jobRequest.id,
         occupationTitle: jobRequest.occupation.title,
-        categoryTitle: jobRequest.category.title,
         workDate: jobRequest.workDate,
         workTime: jobRequest.workTime,
         address: jobRequest.address,

@@ -57,13 +57,6 @@ export class JobRequest {
   @Column()
   occupation_id: number;
 
-  @ManyToOne(() => Category, { eager: true, nullable: false })
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
-
-  @Column()
-  category_id: number;
-
   @ManyToOne(() => Worker, { nullable: true })
   @JoinColumn({ name: 'booked_by' })
   bookedBy: Worker;
@@ -81,16 +74,16 @@ export class JobRequest {
   @Column({ default: false })
   offerAccepted: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   offerAcceptedAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   acceptedOfferVersion: string;
 
-  @Column('text')
+  @Column({ nullable: true })
   acceptedOfferContent: string;
 
-  @Column()
+  @Column({ nullable: true })
   acceptedOfferHash: string;
 
   @Column({ nullable: true })
@@ -98,4 +91,7 @@ export class JobRequest {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ nullable: true, default: false })
+  wasSentToMasters?: boolean;
 }

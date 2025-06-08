@@ -27,7 +27,6 @@ export class LogUploaderService {
 
   async uploadOfferAcceptanceLog({
     jobRequestId,
-    email,
     phoneNumber,
     offerVersion,
     offerContent,
@@ -38,7 +37,6 @@ export class LogUploaderService {
     apartment,
   }: {
     jobRequestId: number;
-    email: string;
     phoneNumber: string;
     offerVersion: string;
     offerContent: string;
@@ -53,7 +51,6 @@ export class LogUploaderService {
 
     const logData = {
       jobRequestId,
-      email,
       phoneNumber,
       offerVersion,
       offerHash,

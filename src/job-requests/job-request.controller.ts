@@ -9,6 +9,7 @@ import {
   Param,
   Delete,
   Req,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JobRequestService } from './job-request.service';
 import { JobRequest } from './entities/job-request.entity';
@@ -22,8 +23,8 @@ import { Request } from 'express';
 export class JobRequestController {
   constructor(private readonly jobRequestService: JobRequestService) {}
 
-  @Post()
-  async create(
+  @Post('by-client/create')
+  async createByClient(
     @Body() data: CreateJobRequestDto,
     @Req() req: Request,
   ): Promise<JobRequest> {
@@ -32,7 +33,12 @@ export class JobRequestController {
       req.socket?.remoteAddress ||
       'unknown';
 
-    return this.jobRequestService.create(data, ip);
+    return this.jobRequestService.createByClient(data, ip);
+  }
+
+  @Post()
+  async create(@Body() data: CreateJobRequestDto): Promise<JobRequest> {
+    return this.jobRequestService.create(data);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -66,7 +72,7 @@ export class JobRequestController {
   @Roles('admin', 'manager')
   @Patch(':id')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateData: Partial<JobRequest>,
   ): Promise<JobRequest> {
     return this.jobRequestService.updateRequest(id, updateData);
@@ -91,5 +97,37 @@ export class JobRequestController {
   @Patch('cancel/:id')
   async cancel(@Param('id') id: number): Promise<JobRequest> {
     return this.jobRequestService.cancelRequest(id);
+  }
+
+  @Patch(':id/accept-offer')
+  async acceptOffer(
+    @Param('id') id: number,
+    @Req() req: Request,
+  ): Promise<JobRequest> {
+    const ip =
+      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+      req.socket?.remoteAddress ||
+      'unknown';
+
+    return this.jobRequestService.acceptOffer(+id, ip);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'manager')
+  @Get(':id/offer-link')
+  async generateOfferLink(@Param('id') id: number): Promise<{ link: string }> {
+    const jobRequest = await this.jobRequestService.getOneRequest(+id);
+    const link = this.jobRequestService.generateOfferLink(jobRequest);
+    return { link };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'manager')
+  @Post(':id/send-to-workers')
+  async sendRequestToWorkers(
+    @Param('id') id: number,
+  ): Promise<{ success: true }> {
+    await this.jobRequestService.sendRequestToWorkers(+id);
+    return { success: true };
   }
 }
