@@ -252,6 +252,19 @@ export class MailService {
     });
   }
 
+  async sendNotificationToAdmin(jobRequestId) {
+    const html = `
+    <p>Здравствуйте, Админ! Поступила новая заявка</p>
+  `;
+
+    return this.transporter.sendMail({
+      from: `"Service Doma" <${process.env.MAIL_USER}>`,
+      to: 'diyaz.mukhanov@gmail.com',
+      subject: `Новая заявка №${jobRequestId}`,
+      html,
+    });
+  }
+
   async sendBookingConfirmationToWorker(options: {
     email: string;
     fullName: string;

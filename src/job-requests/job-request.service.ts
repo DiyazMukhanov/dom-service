@@ -118,6 +118,8 @@ export class JobRequestService {
       });
     }
 
+    await this.mailService.sendNotificationToAdmin(savedJobRequest.id);
+
     return savedJobRequest;
   }
 
